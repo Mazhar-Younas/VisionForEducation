@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EyeLabel · Eye Image Labeling Portal</title>
 <link rel="stylesheet" href="/styles.css?v=spa1">
+  <script src="/config.js"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230e7490' stroke-width='2'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E">
 <style>
 /* view switching is controlled here inline so it never depends on cached CSS */
@@ -172,6 +173,8 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const KEY = 'eyelabel_sid';
+  const APP_CONFIG = window.__APP_CONFIG__ || {};
+  const API_BASE = String(APP_CONFIG.apiBase || '').replace(/\/$/, '');
 
   let TOKEN = null;      // source of truth while this page is open
   let USER = null;
@@ -225,7 +228,7 @@
   async function api(path, opts, quiet) {
     opts = opts || {};
     opts.headers = Object.assign({}, opts.headers || {});
-    let url = path;
+    let url = (path.charAt(0) === '/' ? API_BASE + path : path);
     if (TOKEN) {
       opts.headers['Authorization'] = 'Bearer ' + TOKEN;
       url += (url.includes('?') ? '&' : '?') + 'sid=' + encodeURIComponent(TOKEN);

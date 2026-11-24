@@ -7,9 +7,10 @@ const crypto = require('crypto');
 const ROOT = __dirname;
 const PUBLIC = path.join(ROOT, 'public');
 const PORT = Number(process.env.PORT || 3000);
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://khywsjnfriabcveonglz.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_TTe16gKdPgaBByeT-cPihA_h5ORHjnP';
-const BUCKET = 'eye-images';
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://khywsjnfriabcveonglz.supabase.co').replace(/\/$/, '');
+const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_TTe16gKdPgaBByeT-cPihA_h5ORHjnP';
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'eye-images';
+const ALLOWED_ORIGIN = process.env.CORS_ALLOW_ORIGIN || '*';
 const MIME_EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
 const EXT_MIME = Object.fromEntries(Object.entries(MIME_EXT).map(([k,v]) => [v,k]));
 function sendJSON(res, status, obj) {
@@ -73,9 +74,13 @@ function serveStatic(res,urlPath){
 }
 const server=http.createServer(async(req,res)=>{
  const u=new URL(req.url,'http://localhost'), p=u.pathname;
- res.setHeader('Access-Control-Allow-Origin','*'); res.setHeader('Vary','Origin');
+ res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+ res.setHeader('Vary','Origin');
  if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Methods':'GET, POST, DELETE, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Max-Age':'86400'});return res.end();}
  try {
+  if(p==='/api/health'&&req.method==='GET'){
+   return sendJSON(res,200,{ok:true,service:'eyescan',supabaseConfigured:!!(SUPABASE_URL&&SUPABASE_KEY),bucket:BUCKET,time:new Date().toISOString()});
+  }
   if(p==='/api/register'&&req.method==='POST'){
    const b=JSON.parse(await readBody(req,1024*1024)); const name=String(b.name||'').trim(),email=String(b.email||'').trim().toLowerCase(),password=String(b.password||''),specialization=String(b.specialization||'').trim();
    if(!name)return sendJSON(res,400,{error:'Full name is required.'}); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return sendJSON(res,400,{error:'Enter a valid email address.'}); if(password.length<6)return sendJSON(res,400,{error:'Password must be at least 6 characters.'});

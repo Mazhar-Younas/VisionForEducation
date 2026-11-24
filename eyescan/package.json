@@ -1,0 +1,16 @@
+﻿{
+  "name": "eyescan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EyeLabel clinical eye image labeling portal (Supabase-backed)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "node scripts/write-config.js",
+    "vercel-build": "node scripts/write-config.js"
+  }
+}
